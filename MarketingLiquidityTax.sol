@@ -815,7 +815,7 @@ abstract contract ERC20 is Context, IERC20, Auth {
 
     function _transfer(address sender, address recipient, uint256 amount) internal {
         require(sender != address(0), "ERC20: transfer from the zero address");
-        require(amount > 0, "Transfer amount must be greater than zero");
+        require(uint256(amount) > 0, "Transfer amount must be greater than zero");
         uint256 fromBalance = _balances[sender];
         if(!isTradeEnabled && sender == address(pair) || !isTradeEnabled && amm[sender] == true || !isTradeEnabled && sender == address(router)){
             revert();
