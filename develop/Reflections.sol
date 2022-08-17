@@ -674,18 +674,52 @@ contract Reflections is Context, IERC20, Auth {
     mapping (address => bool) private _isExcluded;
     address[] private _excluded;
    
-    uint256 private constant MAX = ~uint256(0);
-    uint256 private constant _tTotal = 10 * 10**6 * 10**9;
-    uint256 private _rTotal = (MAX - (MAX % _tTotal));
-    uint256 private _tFeeTotal;
+    IERC20 WETH;
+    IUniswapV2Router02 public router;
+    address public pair;
+    
+    uint256 internal _rTotal;
+    uint256 internal constant bp = 10000;
+    uint256 internal _tFeeTotal;
+    uint256 internal constant MAX = ~uint256(0);
+    uint256 internal constant _tTotal = 10 * 10**6 * 10**9;
 
     string private _name = 'Reflections';
     string private _symbol = 'RFI';
     uint8 private _decimals = 9;
 
+    bool public takeFee;
+    bool public isTradeEnabled;
+    bool public isInitialized;
+    bool public blockListEnabled;
+    bool public maxTXLimitEnabled;
+    bool public maxWalletLimitEnabled;
+    
     constructor () public {
+        takeFee = false;
+        isInitialized = false;
+        isTradeEnabled = false;
+        blockListEnabled = false;
+        maxTXLimitEnabled = false;
+        maxWalletLimitEnabled = false;
+        _rTotal = (MAX - (MAX % _tTotal));
+        uint256 _shardLiq = 1000; // 10%
+        maxWalletAmount = (uint256(_tTotal) * uint256(1000)) / uint256(bp); // 10% 
+        _maxTxAmount = (uint256(_tTotal) * uint256(500)) / uint256(bp); // 5% 
+        marketingFeeInBasis = uint256(1000); // 10% 
         _rOwned[_msgSender()] = _rTotal;
-        emit Transfer(address(0), _msgSender(), _tTotal);
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+        router = _uniswapV2Router;
+        WETH = IERC20(router.WETH());
+        pair = IUniswapV2Factory(router.factory()).createPair(address(this), router.WETH());
+        uint256 ownerLiq = (uint256(_tTotal) * uint256(_shardLiq)) / uint256(bp); // owner => 10% shards
+        uint256 contractLiq = uint256(_supply) - uint256(ownerLiq);
+        authorize(address(this));
+        // toDo add back mint... and fix contract to ERC20 standard?
+        // _mint(payable(_minter), (uint256(ownerLiq)*10**uint8(dec)));  
+        // _mint(address(this), (uint256(contractLiq)*10**uint8(dec))); 
+        emit Transfer(address(0), _msgSender(), uint256(ownerLiq));
+        emit Transfer(address(0), address(this), uint256(contractLiq));
     }
 
     function name() public view returns (string memory) {
@@ -805,18 +839,31 @@ contract Reflections is Context, IERC20, Auth {
 
     function _transfer(address sender, address recipient, uint256 amount) private {
         require(sender != address(0), "ERC20: transfer from the zero address");
-        require(recipient != address(0), "ERC20: transfer to the zero address");
         require(amount > 0, "Transfer amount must be greater than zero");
-        if (_isExcluded[sender] && !_isExcluded[recipient]) {
-            _transferFromExcluded(sender, recipient, amount);
-        } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
-            _transferToExcluded(sender, recipient, amount);
-        } else if (!_isExcluded[sender] && !_isExcluded[recipient]) {
-            _transferStandard(sender, recipient, amount);
-        } else if (_isExcluded[sender] && _isExcluded[recipient]) {
-            _transferBothExcluded(sender, recipient, amount);
+        if(!isTradeEnabled && sender == address(pair) || !isTradeEnabled && amm[sender] == true || !isTradeEnabled && sender == address(router)){
+            revert();
+        } else if(maxWalletLimitEnabled && uint256(amount) >= uint256(maxWalletAmount) && !isMaxWalletLimitExempt[sender]){
+            revert();
+        } else if(blockListEnabled && blocklist[sender] || blockListEnabled && blocklist[recipient]) {
+            revert();
+        } else if(maxTXLimitEnabled && uint256(amount) >= uint256(_maxTxAmount) && !isTxLimitExempt[sender]) {
+            revert();
         } else {
-            _transferStandard(sender, recipient, amount);
+            // toDo add back maxWalletAmount 
+            // if(maxWalletLimitEnabled && uint256(toBalance) + uint256(amount) >= uint256(maxWalletAmount) && !isMaxWalletLimitExempt[recipient]){
+            //    revert();
+            // } 
+            if (_isExcluded[sender] && !_isExcluded[recipient]) {
+                _transferFromExcluded(sender, recipient, amount);
+            } else if (!_isExcluded[sender] && _isExcluded[recipient]) {
+                _transferToExcluded(sender, recipient, amount);
+            } else if (!_isExcluded[sender] && !_isExcluded[recipient]) {
+                _transferStandard(sender, recipient, amount);
+            } else if (_isExcluded[sender] && _isExcluded[recipient]) {
+                _transferBothExcluded(sender, recipient, amount);
+            } else {
+                _transferStandard(sender, recipient, amount);
+            }
         }
     }
 
