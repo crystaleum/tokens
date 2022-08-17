@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2022-08-17
+*/
+
 //SPDX-License-Identifier: MIT
 pragma solidity 0.5.8;
 
@@ -130,6 +134,7 @@ contract ERC20 is IERC20 {
     }
 
     function _transfer(address sender, address recipient, uint256 amount, bool takeFee) internal {
+        require(uint256(amount) > uint256(0), "ERC20: transfer amount is zero");
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
         if(takeFee == true) {
