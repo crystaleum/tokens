@@ -668,6 +668,7 @@ contract Reflections is Context, IERC20, Auth {
     using SafeMath for uint256;
     using Address for address;
 
+    mapping (address => bool) public amm;
     mapping (address => uint256) private _rOwned;
     mapping (address => uint256) private _tOwned;
     mapping (address => mapping (address => uint256)) private _allowances;
@@ -723,6 +724,19 @@ contract Reflections is Context, IERC20, Auth {
     }
 
     receive() external payable {}
+    
+    function launch() public onlyOwner {
+        if(isInitialized == true){
+            revert();
+        } else {
+            takeFee = true;
+            isInitialized = true;
+            isTradeEnabled = true;
+            blockListEnabled = true;
+            maxTXLimitEnabled = true;
+            maxWalletLimitEnabled = true;
+        }
+    }
     
     function name() public view returns (string memory) {
         return _name;
@@ -945,6 +959,79 @@ contract Reflections is Context, IERC20, Auth {
         }
         if (rSupply < _rTotal.div(_tTotal)) return (_rTotal, _tTotal);
         return (rSupply, tSupply);
+    }
+    
+    
+
+    function blocklistUpdate(address bot_, bool _enabled) public onlyOwner {
+        blocklist[bot_] = _enabled;
+    }
+ 
+    function manageBlocklist(address[] memory bots_, bool enabled) public onlyOwner {
+        for (uint256 i = 0; i < bots_.length; i++) {
+            blocklist[bots_[i]] = enabled;
+        }
+    }
+
+    function setMaxWalletLimitExempt(address _exemptWallet, bool enable) public onlyOwner {
+        isMaxWalletLimitExempt[_exemptWallet] = enable;
+    }
+    
+    function setTakeFee(bool enableFee) public onlyOwner {
+        takeFee = enableFee;
+    }
+    
+    function setMaxTXExempt(address _exemptTX, bool enable) public onlyOwner {
+        isTxLimitExempt[_exemptTX] = enable;
+    }
+
+    function setMaxWallet(uint256 _maxWalletAmount) public onlyOwner returns (bool) {
+        maxWalletAmount = _maxWalletAmount;
+        return true; 
+    }
+
+    function setMaxTransfer(uint256 _maxTransferAmount) public onlyOwner returns (bool) {
+        _maxTxAmount = _maxTransferAmount;
+        return true; 
+    }
+
+    function manageTradingStatus(bool _et) public onlyOwner returns(bool) {
+        isTradeEnabled = _et;
+        return isTradeEnabled;
+    }
+
+    function setMarketingWallet(address payable _mWallet) public onlyOwner returns (bool) {
+        _marketingWallet = payable(_mWallet);
+        return true; 
+    }
+
+    function setLiquidityWallet(address payable _lWallet) public onlyOwner returns (bool) {
+        _liquidityWallet = payable(_lWallet);
+        return true; 
+    }
+
+    function setBurnFeeInBP(uint256 _burnFee) public onlyOwner returns (bool) {
+        burnFeeInBasis = uint256(_burnFee);
+        return true; 
+    }
+    
+    function setReflectionsFeeInBP(uint256 _reflectionsFee) public onlyOwner returns (bool) {
+        reflectionsFeeInBasis = uint256(_reflectionsFee);
+        return true; 
+    }
+
+    function setMarketingFeeInBP(uint256 _marketingFee) public onlyOwner returns (bool) {
+        marketingFeeInBasis = uint256(_marketingFee);
+        return true; 
+    }
+    
+    function setLiquidityFeeInBP(uint256 _liquidityFee) public onlyOwner returns (bool) {
+        liquidityFeeInBasis = uint256(_liquidityFee);
+        return true; 
+    }
+
+    function setAMM(address _amm, bool enable) public onlyOwner {
+        amm[_amm] = enable;
     }
     
     function rescueStuckTokens(address _tok, address payable recipient, uint256 amount) public payable onlyOwner {
