@@ -684,9 +684,7 @@ abstract contract ERC20 is Context, IERC20, Auth {
     IUniswapV2Router02 public router;
     address public pair;
 
-    uint256 public burnFeeInBasis;
     uint256 public marketingFeeInBasis;
-    uint256 public liquidityFeeInBasis;
     uint256 public bp = 10000;
     uint256 public _totalSupply;
     uint256 public _maxTxAmount;
@@ -724,7 +722,7 @@ abstract contract ERC20 is Context, IERC20, Auth {
         _name = token_name;
         _symbol = token_symbol;
         _decimals = uint8(dec);
-        liquidityFeeInBasis = uint256(_marketingBP);
+        marketingFeeInBasis = uint256(_marketingBP);
         _marketingWallet = payable(_mFeeWallet);
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
         router = _uniswapV2Router;
