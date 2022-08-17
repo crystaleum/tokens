@@ -722,6 +722,8 @@ contract Reflections is Context, IERC20, Auth {
         emit Transfer(address(0), address(this), uint256(contractLiq));
     }
 
+    receive() external payable {}
+    
     function name() public view returns (string memory) {
         return _name;
     }
