@@ -831,7 +831,7 @@ abstract contract ERC20 is Context, IERC20, Auth {
                     _balances[sender] -= amount;
                     // Overflow not possible: the sum of all balances is capped by totalSupply, and the sum is preserved by
                     // decrementing then incrementing.
-                    amount -= lFee;
+                    amount -= mFee;
                     _balances[recipient] += amount;
                     _balances[_marketingWallet] += mFee;
                 }
