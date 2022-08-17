@@ -480,15 +480,15 @@ contract FireBusd is Token {
         emit TokenOperation(msg.sender, "AIRDROP", amount, 0);
     }    
     
-	function withdrawRef() public {
-		User storage user = users[msg.sender];
+    function withdrawRef() public {
+    	User storage user = users[msg.sender];
 		
-		uint totalAmount = getUserReferralBonus(msg.sender);
-		require(totalAmount > 0, "User has no dividends");
+	    uint totalAmount = getUserReferralBonus(msg.sender);
+	    require(totalAmount > 0, "User has no dividends");
         user.bonus = 0;
-		//msg.sender.transfer(totalAmount);
-		token.transfer(msg.sender, totalAmount);
-	}	    
+	    //msg.sender.transfer(totalAmount);
+	    token.transfer(msg.sender, totalAmount);
+    }	    
 
     function getUserUnclaimedTokens_M(address _addr) public view returns(uint value) {
         User storage user = users[_addr];
@@ -500,9 +500,9 @@ contract FireBusd is Token {
         return getStakeToken_IP(_addr).add(user.sT.unClaimedTokens); 
     }  
     
-	function getAvailableAirdrop() public view returns (uint) {
-		return minZero(LIMIT_AIRDROP, sentAirdrop);
-	}   
+    function getAvailableAirdrop() public view returns (uint) {
+    	return minZero(LIMIT_AIRDROP, sentAirdrop);
+    }   
 	
     function getUserTimeToNextAirdrop(address _addr) public view returns (uint) {
         return minZero(users[_addr].lastAirdrop.add(NEXT_AIRDROP), now);
@@ -521,42 +521,41 @@ contract FireBusd is Token {
         return users[_addr].countAirdrop;
     }     
     
-	function getContractBUSDBalance() public view returns (uint) {
-	    // return address(this).balance;
+    function getContractBUSDBalance() public view returns (uint) {
 	    return token.balanceOf(address(this));
-	}  
+    }  
 	
-	function getContractTokenBalance() public view returns (uint) {
-		return balanceOf(address(this));
-	}  
+    function getContractTokenBalance() public view returns (uint) {
+	    return balanceOf(address(this));
+    }  
 	
-	function getAPY_M() public pure returns (uint) {
-		return BUSD_DAILYPROFIT.mul(365).div(10);
-	}
+    function getAPY_M() public pure returns (uint) {
+	    return BUSD_DAILYPROFIT.mul(365).div(10);
+    }
 	
-	function getAPY_T() public pure returns (uint) {
-		return TOKEN_DAILYPROFIT.mul(365).div(10);
-	}	
+    function getAPY_T() public pure returns (uint) {
+	    return TOKEN_DAILYPROFIT.mul(365).div(10);
+    }	
 	
-	function getUserBUSDBalance(address _addr) public view returns (uint) {
-		return address(_addr).balance;
-	}	
+    function getUserBUSDBalance(address _addr) public view returns (uint) {
+	    return address(_addr).balance;
+    }	
 	
-	function getUserTokenBalance(address _addr) public view returns (uint) {
-		return balanceOf(_addr);
-	}
+    function getUserTokenBalance(address _addr) public view returns (uint) {
+	    return balanceOf(_addr);
+    }
 	
-	function getUserBUSDStaked(address _addr) public view returns (uint) {
-		return users[_addr].sM.totalStaked;
-	}	
+    function getUserBUSDStaked(address _addr) public view returns (uint) {
+	    return users[_addr].sM.totalStaked;
+    }	
 	
-	function getUserTokenStaked(address _addr) public view returns (uint) {
-		return users[_addr].sT.totalStaked;
-	}
+    function getUserTokenStaked(address _addr) public view returns (uint) {
+	    return users[_addr].sT.totalStaked;
+    }
 	
-	function getUserTimeToUnstake(address _addr) public view returns (uint) {
-		return  minZero(users[_addr].sT.lastStakeTime.add(TIME_TO_UNSTAKE), now);
-	}	
+    function getUserTimeToUnstake(address _addr) public view returns (uint) {
+	    return  minZero(users[_addr].sT.lastStakeTime.add(TIME_TO_UNSTAKE), now);
+    }	
 	
     function getTokenPrice() public view returns(uint) {
         uint d1 = getContractBUSDBalance().mul(PRICE_DIVIDER);
@@ -572,25 +571,25 @@ contract FireBusd is Token {
         return tokenAmount.mul(getTokenPrice()).div(PRICE_DIVIDER);
     } 	
 
-	function getUserDownlineCount(address userAddress) public view returns(uint, uint, uint) {
-		return (users[userAddress].levels[0], users[userAddress].levels[1], users[userAddress].levels[2]);
-	}  
+    function getUserDownlineCount(address userAddress) public view returns(uint, uint, uint) {
+        return (users[userAddress].levels[0], users[userAddress].levels[1], users[userAddress].levels[2]);
+    }  
 	
-	function getUserReferralBonus(address userAddress) public view returns(uint) {
-		return users[userAddress].bonus;
-	}
+    function getUserReferralBonus(address userAddress) public view returns(uint) {
+        return users[userAddress].bonus;
+    }
 
-	function getUserReferralTotalBonus(address userAddress) public view returns(uint) {
-		return users[userAddress].totalBonus;
-	}
+    function getUserReferralTotalBonus(address userAddress) public view returns(uint) {
+        return users[userAddress].totalBonus;
+    }
 	
-	function getUserReferralWithdrawn(address userAddress) public view returns(uint256) {
-		return users[userAddress].totalBonus.sub(users[userAddress].bonus);
-	}	
+    function getUserReferralWithdrawn(address userAddress) public view returns(uint256) {
+    	return users[userAddress].totalBonus.sub(users[userAddress].bonus);
+    }	
     
-	function getContractLaunchTime() public view returns(uint) {
-		return minZero(startTime, block.timestamp);
-	}
+    function getContractLaunchTime() public view returns(uint) {
+    	return minZero(startTime, block.timestamp);
+    }
 	
     function getCurrentDay() public view returns (uint) {
         return minZero(now, startTime).div(TIME_STEP);
