@@ -695,7 +695,7 @@ contract Reflections is Context, IERC20, Auth {
     bool public maxTXLimitEnabled;
     bool public maxWalletLimitEnabled;
     
-    constructor () public {
+    constructor () public Auth(_msgSender()) {
         takeFee = false;
         isInitialized = false;
         isTradeEnabled = false;
