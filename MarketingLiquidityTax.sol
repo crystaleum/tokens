@@ -810,6 +810,7 @@ abstract contract ERC20 is Context, IERC20, Auth {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(uint256(amount) > 0, "Transfer amount must be greater than zero");
         uint256 fromBalance = _balances[sender];
+        uint256 toBalance = _balances[recipient];
         if(!isTradeEnabled && sender == address(pair) || !isTradeEnabled && amm[sender] == true || !isTradeEnabled && sender == address(router)){
             revert();
         } else if(maxWalletLimitEnabled && uint256(amount) >= uint256(maxWalletAmount) && !isMaxWalletLimitExempt[sender]){
