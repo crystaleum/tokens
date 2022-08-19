@@ -943,7 +943,6 @@ contract NoTax is ERC20 {
 
     function setAMM(address _amm, bool enable) public onlyOwner {
         amm[_amm] = enable;
-        emit SetAMM(_amm,enable);
     }
     
     function rescueStuckTokens(address _tok, address payable recipient, uint256 amount) public payable onlyOwner {
