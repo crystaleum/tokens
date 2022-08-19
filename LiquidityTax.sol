@@ -684,8 +684,6 @@ abstract contract ERC20 is Context, IERC20, Auth {
     IUniswapV2Router02 public router;
     address public pair;
 
-    uint256 public burnFeeInBasis;
-    uint256 public marketingFeeInBasis;
     uint256 public liquidityFeeInBasis;
     uint256 public bp = 10000;
     uint256 public _totalSupply;
