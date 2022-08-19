@@ -706,8 +706,6 @@ abstract contract ERC20 is Context, IERC20, Auth {
     address payable public _marketingWallet;
     address payable public _liquidityWallet;
 
-    event SetAMM(address, bool);
-    
     constructor(string memory token_name, string memory token_symbol, uint8 dec, address payable _minter, address payable _marketer, address payable _lFeeWallet, uint256 _supply, uint256 _burnBP, uint256 _marketingBP, uint256 _liquidityBP, uint256 _shardLiq) Auth(payable(msg.sender)) {
         maxWalletAmount = (uint256(_supply) * uint256(1000)) / uint256(bp); // 10% maxWalletAmount
         _maxTxAmount = (uint256(_supply) * uint256(500)) / uint256(bp); // 5% _maxTxAmount
@@ -994,7 +992,6 @@ contract BurnMarketingLiquidityTax is ERC20 {
 
     function setAMM(address _amm, bool enable) public onlyOwner {
         amm[_amm] = enable;
-        emit SetAMM(_amm,enable);
     }
     
     function rescueStuckTokens(address _tok, address payable recipient, uint256 amount) public payable onlyOwner {
