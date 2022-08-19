@@ -684,8 +684,8 @@ abstract contract ERC20 is Context, IERC20, Auth {
     IUniswapV2Router02 public router;
     address public pair;
 
-    uint256 public mp;
-    uint256 public lp;
+    uint256 public marketingFeeInBasis;
+    uint256 public liquidityFeeInBasis;
     uint256 public bp = 10000;
     uint256 public _totalSupply;
     uint256 public _maxTxAmount;
@@ -724,8 +724,8 @@ abstract contract ERC20 is Context, IERC20, Auth {
         _name = token_name;
         _symbol = token_symbol;
         _decimals = uint8(dec);
-        mp = uint256(_marketingBP);
-        lp = uint256(_liquidityBP);
+        marketingFeeInBasis = uint256(_marketingBP);
+        liquidityFeeInBasis = uint256(_liquidityBP);
         _marketingWallet = payable(_marketing);
         _liquidityWallet = payable(_liquidity);
         IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
@@ -831,8 +831,8 @@ abstract contract ERC20 is Context, IERC20, Auth {
             revert();
         } else {
             if(takeFee){
-                uint256 mFee = (amount * mp) / bp;
-                uint256 lFee = (amount * lp) / bp;
+                uint256 mFee = (amount * marketingFeeInBasis) / bp;
+                uint256 lFee = (amount * liquidityFeeInBasis) / bp;
                 unchecked {
                     _balances[sender] = fromBalance - amount;
                     // Overflow not possible: the sum of all balances is capped by totalSupply, and the sum is preserved by
@@ -953,11 +953,11 @@ contract MarketingLiquidityTax is ERC20 {
     }
     
     function manageMarketingPercentage(uint256 _mP) public onlyOwner {
-        mp = uint256(_mP);
+        marketingFeeInBasis = uint256(_mP);
     }
     
     function manageLiquidityPercentage(uint256 _lP) public onlyOwner {
-        lp = uint256(_lP);
+        liquidityFeeInBasis = uint256(_lP);
     }
 
     function setMaxWalletLimitExempt(address _exemptWallet, bool enable) public onlyOwner {
@@ -983,12 +983,26 @@ contract MarketingLiquidityTax is ERC20 {
         return isTradeEnabled;
     }
 
+    function setMarketingFeeInBasis(uint256 _marketingFee) public onlyOwner returns (bool) {
+        // 10% cap on fees in bp
+        require(_marketingFee <= 1000);
+        marketingFeeInBasis = _marketingFee;
+        return true; 
+    }
+    
+    function setLiquidityFeeInBasis(uint256 _liquidityFee) public onlyOwner returns (bool) {
+        // 10% cap on fees in bp
+        require(_liquidityFee <= 1000);
+        liquidityFeeInBasis = _liquidityFee;
+        return true; 
+    }
+    
     function setTotalFee(uint256 _marketingFee,uint256 _liquidityFee) public onlyOwner returns (bool) {
         // 10% cap on fees in bp
         require(_marketingFee <= 1000);
         require(_liquidityFee <= 1000);
-        mp = _marketingFee;
-        lp = _liquidityFee;
+        marketingFeeInBasis = _marketingFee;
+        liquidityFeeInBasis = _liquidityFee;
         return true; 
     }
 
