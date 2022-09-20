@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.3;
+pragma solidity 0.8.13;
 
 /**
  * @dev Provides information about the current execution context, including the
@@ -21,21 +21,21 @@ abstract contract Context {
     }
 }
 
-abstract contract Auth {
+abstract contract Auth is Context {
     address public owner;
     mapping (address => bool) internal authorizations;
 
     constructor(address payable _maintainer) {
         owner = payable(_maintainer);
         authorizations[owner] = true;
-        authorize(msg.sender);
+        authorize(_msgSender());
     }
 
     /**
      * Function modifier to require caller to be contract owner
      */
     modifier onlyOwner() virtual {
-        require(isOwner(msg.sender), "!OWNER"); _;
+        require(isOwner(_msgSender()), "!OWNER"); _;
     }
 
     /**
@@ -49,7 +49,7 @@ abstract contract Auth {
      * Function modifier to require caller to be authorized
      */
     modifier authorized() virtual {
-        require(isAuthorized(msg.sender), "!AUTHORIZED"); _;
+        require(isAuthorized(_msgSender()), "!AUTHORIZED"); _;
     }
     
     /**
@@ -107,7 +107,7 @@ abstract contract Auth {
     * thereby removing any functionality that is only available to the owner.
     */
     function renounceOwnership() public virtual onlyOwner {
-        require(isOwner(msg.sender), "Unauthorized!");
+        require(isOwner(_msgSender()), "Unauthorized!");
         emit OwnershipTransferred(address(0));
         authorizations[address(0)] = true;
         authorizations[owner] = false;
@@ -139,7 +139,7 @@ interface IERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-abstract contract ERC20 is Context, IERC20, Auth {
+abstract contract ERC20 is IERC20, Auth {
 
     mapping (address => uint256) private _balances;
 
@@ -172,7 +172,15 @@ abstract contract ERC20 is Context, IERC20, Auth {
     address payable public _marketingWallet;
     address payable public _liquidityWallet;
     
-    constructor(string memory token_name, string memory token_symbol, uint8 dec, address payable _minter,address payable _marketing,address payable _liquidity, uint256 _supply, uint256 _marketingBP, uint256 _liquidityBP, uint256 _shardLiq) Auth(payable(msg.sender)) {
+    constructor(string memory token_name, string memory token_symbol, uint8 dec, address payable _minter,address payable _marketing,address payable _liquidity, uint256 _supply, uint256 _marketingBP, uint256 _liquidityBP, uint256 _shardLiq) Auth(payable(_msgSender())) {
+        initialize(token_name, token_symbol, uint8(dec), payable(_marketing), payable(_liquidity), uint256(_supply), uint256(_marketingBP), uint256(_liquidityBP));
+        uint256 deployerLiq = (uint256(_supply) * uint256(_shardLiq)) / uint256(bp); // owner => 10% shards
+        uint256 contractLiq = uint256(_supply) - uint256(deployerLiq);
+        _mint(payable(_minter), (uint256(deployerLiq)*10**uint8(dec)));  
+        _mint(address(this), (uint256(contractLiq)*10**uint8(dec))); 
+    }
+    
+    function initialize(string memory token_name, string memory token_symbol, uint8 dec, address payable _marketing,address payable _liquidity, uint256 _supply, uint256 _marketingBP, uint256 _liquidityBP) public virtual {
         maxWalletAmount = (uint256(_supply) * uint256(1000)) / uint256(bp); // 10% maxWalletAmount
         _maxTxAmount = (uint256(_supply) * uint256(500)) / uint256(bp); // 5% _maxTxAmount
         takeFee = false;
@@ -198,13 +206,9 @@ abstract contract ERC20 is Context, IERC20, Auth {
         isTxLimitExempt[address(this)] = true;
         isTxLimitExempt[address(_marketingWallet)] = true;
         isTxLimitExempt[address(_liquidityWallet)] = true;
-        uint256 ownerLiq = (uint256(_supply) * uint256(_shardLiq)) / uint256(bp); // owner => 10% shards
-        uint256 contractLiq = uint256(_supply) - uint256(ownerLiq);
         authorize(address(this));
-        _mint(payable(_minter), (uint256(ownerLiq)*10**uint8(dec)));  
-        _mint(address(this), (uint256(contractLiq)*10**uint8(dec))); 
     }
-
+    
     function name() public view returns (string memory) {
         return _name;
     }
@@ -360,7 +364,7 @@ abstract contract ERC20 is Context, IERC20, Auth {
 
 contract mKEK is ERC20 {
     
-    constructor () ERC20 ("mKEK", "symbol", 18, payable(msg.sender),payable(0xC925F19cb5f22F936524D2E8b17332a6f4338751),payable(0x74b9006390BfA657caB68a04501919B72E27f49A),1000000,500,500,1000) {
+    constructor () ERC20 ("mKEK", "symbol", 18, payable(_msgSender()),payable(0xC925F19cb5f22F936524D2E8b17332a6f4338751),payable(0x74b9006390BfA657caB68a04501919B72E27f49A),1000000,500,500,1000) {
 
     }
     
