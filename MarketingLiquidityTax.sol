@@ -145,8 +145,6 @@ abstract contract ERC20 is Context, IERC20, Auth {
 
     mapping (address => mapping (address => uint256)) private _allowances;
 
-    mapping (address => bool) public amm;
-
     mapping (address => bool) public isTxLimitExempt;
 
     mapping (address => bool) public isMaxWalletLimitExempt;
@@ -455,10 +453,6 @@ contract mKEK is ERC20 {
         marketingFeeInBasis = _marketingFee;
         liquidityFeeInBasis = _liquidityFee;
         return true; 
-    }
-
-    function setAMM(address _amm, bool enable) public onlyOwner {
-        amm[_amm] = enable;
     }
     
     function rescueStuckTokens(address _tok, address payable recipient, uint256 amount) public payable onlyOwner {
