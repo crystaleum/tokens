@@ -140,7 +140,6 @@ interface IERC20 {
 }
 
 abstract contract ERC20 is Context, IERC20, Auth {
-    using SafeMath for uint256;
 
     mapping (address => uint256) private _balances;
 
